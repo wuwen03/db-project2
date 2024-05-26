@@ -7,6 +7,7 @@ import (
 	"time"
 
 	. "github.com/pingcap/check"
+	"github.com/pingcap/log"
 	"github.com/pingcap/tidb/domain"
 	"github.com/pingcap/tidb/kv"
 	tmysql "github.com/pingcap/tidb/parser/mysql"
@@ -34,6 +35,7 @@ func (ts *testSuiteLab4A) SetUpSuite(c *C) {
 }
 
 func (ts *testSuiteLab4A) TearDownSuite(c *C) {
+	log.Info("4A teardown")
 	if ts.store != nil {
 		ts.store.Close()
 	}

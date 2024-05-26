@@ -50,6 +50,7 @@ import (
 
 	"github.com/pingcap/errors"
 	"github.com/pingcap/failpoint"
+	"github.com/pingcap/log"
 	"github.com/pingcap/tidb/executor"
 	"github.com/pingcap/tidb/kv"
 	"github.com/pingcap/tidb/parser/mysql"
@@ -599,7 +600,9 @@ func (cc *clientConn) Run(ctx context.Context) {
 
 		// Hint: step I.2
 		// YOUR CODE HERE (lab4)
-		panic("YOUR CODE HERE")
+		// panic("YOUR CODE HERE")
+		log.Info("step I.2")
+		err = cc.dispatch(ctx,data)
 		if err != nil {
 			if terror.ErrorEqual(err, io.EOF) {
 
@@ -698,7 +701,8 @@ func (cc *clientConn) dispatch(ctx context.Context, data []byte) error {
 		var err error
 		// Hint: step I.2
 		// YOUR CODE HERE (lab4)
-		panic("YOUR CODE HERE")
+		// panic("YOUR CODE HERE")
+		err = cc.handleQuery(ctx,dataStr)
 		return err
 	case mysql.ComPing:
 		return cc.writeOK()
@@ -828,8 +832,10 @@ func (cc *clientConn) handleQuery(ctx context.Context, sql string) (err error) {
 	var rss []ResultSet
 	// Hint: step I.3
 	// YOUR CODE HERE (lab4)
-	panic("YOUR CODE HERE")
-
+	// panic("YOUR CODE HERE")
+	log.Info("read")
+	rss,err = cc.ctx.Execute(ctx,sql)
+	
 	if err != nil {
 		return err
 	}
@@ -946,7 +952,9 @@ func (cc *clientConn) writeChunks(ctx context.Context, rs ResultSet, binary bool
 		// Here server.tidbResultSet implements Next method.
 		// Hint: step I.4.4
 		// YOUR CODE HERE (lab4)
-		panic("YOUR CODE HERE")
+		// panic("YOUR CODE HERE")
+		log.Info("writeChunks")
+		err = rs.Next(ctx,req)
 		if err != nil {
 			return err
 		}

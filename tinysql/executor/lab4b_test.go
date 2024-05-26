@@ -16,6 +16,7 @@ var _ = Suite(&testSuiteLab4B{&baseTestSuite{}})
 type testSuiteLab4B struct{ *baseTestSuite }
 
 func (s *testSuiteLab4B) TearDownTest(c *C) {
+	// return
 	tk := testkit.NewTestKit(c, s.store)
 	tk.MustExec("use test")
 	r := tk.MustQuery("show full tables")

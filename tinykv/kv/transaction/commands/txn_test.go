@@ -27,6 +27,7 @@ import (
 const pathPrefix = "/tmp/badger_test_store"
 
 func genPhyTS(phyTS uint64) uint64 {
+	// return phyTS
 	return phyTS << tsoutil.PhysicalShiftBits
 }
 

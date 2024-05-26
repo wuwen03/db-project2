@@ -1,10 +1,13 @@
 package tikv
 
 import (
+	// "fmt"
 	"context"
 	"math/rand"
 
 	"github.com/pingcap/failpoint"
+	"github.com/pingcap/log"
+	// "github.com/pingcap/log"
 	"github.com/pingcap/tidb/parser/terror"
 
 	"github.com/pingcap-incubator/tinykv/proto/pkg/kvrpcpb"
@@ -13,6 +16,7 @@ import (
 	"github.com/pingcap/tidb/store/mockstore/mocktikv"
 	"github.com/pingcap/tidb/store/tikv/tikvrpc"
 )
+
 
 type testLab3Suite struct {
 	OneByOneSuite
@@ -28,6 +32,7 @@ func (s *testLab3Suite) SetUpSuite(c *C) {
 }
 
 func (s *testLab3Suite) SetUpTest(c *C) {
+	log.Info("here")
 	s.cluster = mocktikv.NewCluster()
 	mocktikv.BootstrapWithMultiRegions(s.cluster, []byte("a"), []byte("b"), []byte("c"))
 	mvccStore, err := mocktikv.NewMVCCLevelDB("")
@@ -78,6 +83,12 @@ func (s *testLab3Suite) mustGetLock(c *C, key []byte) *Lock {
 	resp, err := s.store.SendReq(bo, req, loc.Region, readTimeoutShort)
 	c.Assert(err, IsNil)
 	c.Assert(resp.Resp, NotNil)
+	// log.Info(string(resp.Resp.(*kvrpcpb.GetResponse).Value))
+	// var flag = 0
+	// if resp.Resp.(*kvrpcpb.GetResponse).NotFound {
+	// 	flag = 1
+	// }
+	// log.Info(fmt.Sprintf("not found : %d",flag))
 	keyErr := resp.Resp.(*kvrpcpb.GetResponse).GetError()
 	c.Assert(keyErr, NotNil)
 	lock, err := extractLockFromKeyErr(keyErr)
@@ -269,6 +280,7 @@ func (s *testLab3Suite) TestCommitSingleBatch(c *C) {
 		region: loc.Region,
 		keys:   [][]byte{k1},
 	})
+	// s.mustNotExist(c,k1)
 	s.mustUnLock(c, k1)
 	s.mustGetLock(c, k2)
 	s.mustGetLock(c, k3)

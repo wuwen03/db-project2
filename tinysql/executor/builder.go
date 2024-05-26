@@ -23,6 +23,7 @@ import (
 	"github.com/cznic/mathutil"
 	"github.com/cznic/sortutil"
 	"github.com/pingcap/errors"
+	"github.com/pingcap/log"
 	"github.com/pingcap/tidb/distsql"
 	"github.com/pingcap/tidb/domain"
 	"github.com/pingcap/tidb/executor/aggfuncs"
@@ -249,7 +250,9 @@ func (b *executorBuilder) buildInsert(v *plannercore.Insert) Executor {
 	var err error
 	// Hint: step II.1
 	// YOUR CODE HERE (lab4)
-	panic("YOUR CODE HERE")
+	// panic("YOUR CODE HERE")
+	log.Info("build insert")
+	err = ivs.initInsertColumns()
 	if err != nil {
 		b.err = err
 		return nil
@@ -560,7 +563,8 @@ func (b *executorBuilder) buildProjection(v *plannercore.PhysicalProjection) Exe
 	var childExec Executor
 	// Hint: step III.1
 	// YOUR CODE HERE (lab4)
-	panic("YOUR CODE HERE")
+	// panic("YOUR CODE HERE")
+	childExec = b.build(v.Children()[0])
 	if b.err != nil {
 		return nil
 	}

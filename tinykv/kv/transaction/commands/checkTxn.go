@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/pingcap-incubator/tinykv/kv/transaction/mvcc"
 	"github.com/pingcap-incubator/tinykv/proto/pkg/kvrpcpb"
 	"github.com/pingcap-incubator/tinykv/scheduler/pkg/tsoutil"
@@ -31,12 +33,18 @@ func (c *CheckTxnStatus) PrepareWrites(txn *mvcc.MvccTxn) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	panic("CheckTxnStatus is not implemented yet")
+	// panic("CheckTxnStatus is not implemented yet")
 	if lock != nil && lock.Ts == txn.StartTS {
 		if physical(lock.Ts)+lock.Ttl < physical(c.request.CurrentTs) {
 			// YOUR CODE HERE (lab2).
 			// Lock has expired, try to rollback it. `mvcc.WriteKindRollback` could be used to
 			// represent the type. Try using the interfaces provided by `mvcc.MvccTxn`.
+			write := mvcc.Write{StartTS: txn.StartTS, Kind: mvcc.WriteKindRollback}
+			txn.PutWrite(key, txn.StartTS, &write)
+			txn.DeleteLock(key)
+			txn.DeleteValue(key)
+			response.Action = kvrpcpb.Action_TTLExpireRollback
+
 			log.Info("checkTxnStatus rollback the primary lock as it's expired",
 				zap.Uint64("lock.TS", lock.Ts),
 				zap.Uint64("physical(lock.TS)", physical(lock.Ts)),
@@ -47,8 +55,9 @@ func (c *CheckTxnStatus) PrepareWrites(txn *mvcc.MvccTxn) (interface{}, error) {
 			// Lock has not expired, leave it alone.
 			response.Action = kvrpcpb.Action_NoAction
 			response.LockTtl = lock.Ttl
+			log.Info("not expired")
 		}
-
+		log.Info(fmt.Sprintf("nolock lockTtl %d",response.LockTtl))
 		return response, nil
 	}
 
@@ -56,14 +65,17 @@ func (c *CheckTxnStatus) PrepareWrites(txn *mvcc.MvccTxn) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	panic("CheckTxnStatus is not implemented yet")
+	// panic("CheckTxnStatus is not implemented yet")
 	if existingWrite == nil {
 		// YOUR CODE HERE (lab2).
 		// The lock never existed, it's still needed to put a rollback record on it so that
 		// the stale transaction commands such as prewrite on the key will fail.
 		// Note try to set correct `response.Action`,
 		// the action types could be found in kvrpcpb.Action_xxx.
-
+		write := mvcc.Write{StartTS: txn.StartTS, Kind: mvcc.WriteKindRollback}
+		txn.PutWrite(key, txn.StartTS, &write)
+		response.Action = kvrpcpb.Action_LockNotExistRollback
+		log.Info(fmt.Sprintf("lock no write lockTtl %d",response.LockTtl))
 		return response, nil
 	}
 

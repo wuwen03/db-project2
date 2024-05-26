@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/pingcap/errors"
+	"github.com/pingcap/log"
 	"github.com/pingcap/tidb/expression"
 	"github.com/pingcap/tidb/infoschema"
 	"github.com/pingcap/tidb/parser/ast"
@@ -180,27 +181,34 @@ func (a *ExecStmt) Exec(ctx context.Context) (_ sqlexec.RecordSet, err error) {
 	var e Executor
 	// Hint: step I.4.1
 	// YOUR CODE HERE (lab4)
-	panic("YOUR CODE HERE")
+	// panic("YOUR CODE HERE")
+	log.Info("here1")
+	e,err=a.buildExecutor()
 	if err != nil {
 		return nil, err
 	}
 
 	// Hint: step I.4.2
 	// YOUR CODE HERE (lab4)
-	panic("YOUR CODE HERE")
+	// panic("YOUR CODE HERE")
+	log.Info("here2")
+	err=e.Open(ctx)
 	if err != nil {
 		terror.Call(e.Close)
 		return nil, err
 	}
 
 	if handled, result, err := a.handleNoDelay(ctx, e); handled {
+		log.Info("handled")
 		return result, err
 	}
-
+	log.Info("unhandled")
 	var txnStartTS uint64
+	log.Info("unhandled error")
 	txn, err := sctx.Txn(false)
 	if err != nil {
-		return nil, err
+	log.Info("unhandled error1")
+	return nil, err
 	}
 	if txn.Valid() {
 		txnStartTS = txn.StartTS()
@@ -226,9 +234,10 @@ func (a *ExecStmt) handleNoDelay(ctx context.Context, e Executor) (bool, sqlexec
 	if toCheck.Schema().Len() == 0 {
 		// Hint: step I.4.3
 		// YOUR CODE HERE (lab4)
-		panic("YOUR CODE HERE")
-		//return true, r, err
-		return true, nil, nil
+		// panic("YOUR CODE HERE")
+		r,err := a.handleNoDelayExecutor(ctx,e)
+		return true, r, err
+		// return true, nil, nil
 	}
 
 	return false, nil, nil
@@ -242,7 +251,10 @@ func (a *ExecStmt) handleNoDelayExecutor(ctx context.Context, e Executor) (sqlex
 
 	// Hint: step I.4.3.1
 	// YOUR CODE HERE (lab4)
-	panic("YOUR CODE HERE")
+	// panic("YOUR CODE HERE")
+	chunck := newFirstChunk(e)
+	err = Next(ctx,e,chunck)
+	log.Info("handle no delay executor")
 	if err != nil {
 		return nil, err
 	}

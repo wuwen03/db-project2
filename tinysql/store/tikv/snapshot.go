@@ -23,6 +23,7 @@ import (
 	pb "github.com/pingcap-incubator/tinykv/proto/pkg/kvrpcpb"
 	"github.com/pingcap/errors"
 	"github.com/pingcap/failpoint"
+	"github.com/pingcap/log"
 	"github.com/pingcap/tidb/kv"
 
 	"github.com/pingcap/tidb/store/tikv/tikvrpc"
@@ -148,13 +149,30 @@ func (s *tikvSnapshot) get(bo *Backoffer, k kv.Key) ([]byte, error) {
 			//   1. The transaction is during commit, wait for a while and retry.
 			//   2. The transaction is dead with some locks left, resolve it.
 			// YOUR CODE HERE (lab3).
-			panic("YOUR CODE HERE")
+			// panic("YOUR CODE HERE")
+			lock,err1 := extractLockFromKeyErr(keyErr)
+			if err1 != nil {
+				return nil,errors.Trace(err1)
+			}
+			var locks []*Lock
+			locks = append(locks, lock)
+			msBeforeExpired, _, err := s.store.lockResolver.ResolveLocks(bo, s.version.Ver, locks)
+			if err != nil {
+				return nil,errors.Trace(err)
+			}
+			if msBeforeExpired > 0 {
+				err = bo.BackoffWithMaxSleep(boTxnNotFound, int(msBeforeExpired), errors.Errorf("2PC prewrite lockedKeys: %d", len(locks)))
+				if err != nil {
+					return nil,errors.Trace(err)
+				}
+			}
 			continue
 		}
 		return val, nil
 	}
 }
 
+var _ = log.Config{}
 // Iter return a list of key-value pair after `k`.
 func (s *tikvSnapshot) Iter(k kv.Key, upperBound kv.Key) (kv.Iterator, error) {
 	scanner, err := newScanner(s, k, upperBound, scanBatchSize, false)

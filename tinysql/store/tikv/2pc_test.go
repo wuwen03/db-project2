@@ -23,6 +23,7 @@ import (
 	"github.com/pingcap-incubator/tinykv/proto/pkg/kvrpcpb"
 	. "github.com/pingcap/check"
 	"github.com/pingcap/errors"
+	"github.com/pingcap/log"
 	"github.com/pingcap/tidb/store/mockstore/mocktikv"
 	"github.com/pingcap/tidb/store/tikv/tikvrpc"
 )
@@ -141,6 +142,7 @@ func (s *testCommitterSuite) TestPrewriteRollback(c *C) {
 	c.Assert(err, IsNil)
 	err = committer.prewriteKeys(NewBackoffer(ctx, PrewriteMaxBackoff), committer.keys)
 	c.Assert(err, IsNil)
+	log.Info("here")
 
 	txn2 := s.begin(c)
 	v, err := txn2.Get(context.TODO(), []byte("a"))
@@ -148,8 +150,10 @@ func (s *testCommitterSuite) TestPrewriteRollback(c *C) {
 	c.Assert(v, BytesEquals, []byte("a0"))
 
 	err = committer.prewriteKeys(NewBackoffer(ctx, PrewriteMaxBackoff), committer.keys)
+	log.Info("here2")
 	if err != nil {
 		// Retry.
+		log.Info("here3")
 		txn1 = s.begin(c)
 		err = txn1.Set([]byte("a"), []byte("a1"))
 		c.Assert(err, IsNil)
@@ -168,6 +172,7 @@ func (s *testCommitterSuite) TestPrewriteRollback(c *C) {
 	txn3 := s.begin(c)
 	v, err = txn3.Get(context.TODO(), []byte("b"))
 	c.Assert(err, IsNil)
+	log.Info(string(v))
 	c.Assert(v, BytesEquals, []byte("b1"))
 }
 

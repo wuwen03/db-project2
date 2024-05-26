@@ -2,7 +2,9 @@ package session_test
 
 import (
 	"context"
+
 	. "github.com/pingcap/check"
+	"github.com/pingcap/log"
 	"github.com/pingcap/tidb/executor"
 	"github.com/pingcap/tidb/parser"
 	"github.com/pingcap/tidb/parser/mysql"
@@ -52,9 +54,11 @@ func (s *lab4ASessionSuite) TestGetResults(c *C) {
 	data := "vldbss-2021"
 	tk := testkit.NewTestKitWithInit(c, s.store)
 	rss, err := tk.Se.Execute(context.Background(), "select \""+data+"\"")
+	log.Info("get result1")
 	c.Assert(err, IsNil)
 	c.Assert(len(rss), Equals, 1)
 	c.Assert(rss[0].Fields()[0].Column.Name.O, Equals, data)
+	log.Info("get result2")
 	sRows, err := session.ResultSetToStringSlice(context.Background(), tk.Se, rss[0])
 	c.Assert(err, IsNil)
 	c.Assert(len(sRows), Equals, 1)

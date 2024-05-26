@@ -22,6 +22,7 @@ import (
 
 	. "github.com/pingcap/check"
 	"github.com/pingcap/failpoint"
+	"github.com/pingcap/log"
 	"github.com/pingcap/tidb/domain"
 	"github.com/pingcap/tidb/kv"
 	"github.com/pingcap/tidb/parser/model"
@@ -87,6 +88,7 @@ func (s *testSessionSuiteBase) TearDownSuite(c *C) {
 
 func (s *testSessionSuiteBase) TearDownTest(c *C) {
 	tk := testkit.NewTestKitWithInit(c, s.store)
+	log.Info("tear down")
 	r := tk.MustQuery("show full tables")
 	for _, tb := range r.Rows() {
 		tableName := tb[0]

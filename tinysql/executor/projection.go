@@ -20,6 +20,7 @@ import (
 	"sync/atomic"
 
 	"github.com/pingcap/errors"
+	"github.com/pingcap/log"
 	"github.com/pingcap/tidb/expression"
 	"github.com/pingcap/tidb/sessionctx"
 	"github.com/pingcap/tidb/util"
@@ -184,6 +185,7 @@ func (e *ProjectionExec) unParallelExecute(ctx context.Context, chk *chunk.Chunk
 }
 
 func (e *ProjectionExec) parallelExecute(ctx context.Context, chk *chunk.Chunk) error {
+	log.Info("here5")
 	atomic.StoreInt64(&e.parentReqRows, int64(chk.RequiredRows()))
 	if !e.prepared {
 		e.prepare(ctx)
@@ -197,7 +199,8 @@ func (e *ProjectionExec) parallelExecute(ctx context.Context, chk *chunk.Chunk) 
 	// Get the output from fetcher
 	// Hint: step III.3.1
 	// YOUR CODE HERE (lab4)
-	panic("YOUR CODE HERE")
+	// panic("YOUR CODE HERE")
+	output,ok = <-e.outputCh
 	if !ok {
 		return nil
 	}
@@ -341,7 +344,8 @@ func (f *projectionInputFetcher) run(ctx context.Context) {
 		// Send processed output to global output
 		// Hint: step III.3.2
 		// YOUR CODE HERE (lab4)
-		panic("YOUR CODE HERE")
+		// panic("YOUR CODE HERE")
+		f.globalOutputCh <- output
 
 		requiredRows := atomic.LoadInt64(&f.proj.parentReqRows)
 		input.chk.SetRequiredRows(int(requiredRows), f.proj.maxChunkSize)
@@ -354,7 +358,9 @@ func (f *projectionInputFetcher) run(ctx context.Context) {
 		// Give the input and output back to worker
 		// Hint: step III.3.2
 		// YOUR CODE HERE (lab4)
-		panic("YOUR CODE HERE")
+		// panic("YOUR CODE HERE")
+		targetWorker.inputCh <- input
+		targetWorker.outputCh <- output
 	}
 }
 
@@ -383,6 +389,7 @@ type projectionWorker struct {
 // It is finished and exited once:
 //   a. "ProjectionExec" closes the "globalFinishCh".
 func (w *projectionWorker) run(ctx context.Context) {
+	log.Info("run")
 	var output *projectionOutput
 	defer func() {
 		if r := recover(); r != nil {
@@ -398,7 +405,8 @@ func (w *projectionWorker) run(ctx context.Context) {
 		// Get input data
 		// Hint: step III.3.3
 		// YOUR CODE HERE (lab4)
-		panic("YOUR CODE HERE")
+		// panic("YOUR CODE HERE")
+		input = readProjectionInput(w.inputCh,w.globalFinishCh)
 		if input == nil {
 			return
 		}
@@ -406,7 +414,8 @@ func (w *projectionWorker) run(ctx context.Context) {
 		// Get output data
 		// Hint: step III.3.3
 		// YOUR CODE HERE (lab4)
-		panic("YOUR CODE HERE")
+		// panic("YOUR CODE HERE")
+		output = readProjectionOutput(w.outputCh,w.globalFinishCh)
 		if output == nil {
 			return
 		}
@@ -423,7 +432,8 @@ func (w *projectionWorker) run(ctx context.Context) {
 		// Give the input channel back
 		// Hint: step III.3.3
 		// YOUR CODE HERE (lab4)
-		panic("YOUR CODE HERE")
+		// panic("YOUR CODE HERE")
+		w.inputGiveBackCh <- input
 	}
 }
 

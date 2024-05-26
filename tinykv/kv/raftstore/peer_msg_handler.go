@@ -618,6 +618,20 @@ func (d *peerMsgHandler) preProposeRaftCommand(req *raft_cmdpb.RaftCmdRequest) e
 }
 
 func (d *peerMsgHandler) proposeRaftCommand(msg *raft_cmdpb.RaftCmdRequest, cb *message.Callback) {
+	err:=d.preProposeRaftCommand(msg)
+	if err != nil {
+		cb.Done(ErrResp(err))
+		return
+	}
+	if d.stopped {
+		notifyRegionRemoved(d.regionId,d.PeerId(),pendingCmd{term: d.Term(),index: d.nextProposalIndex(),cb:cb})
+		return
+	}
+	resp:=newCmdResp()
+	BindRespTerm(resp,d.Term())
+	d.Propose(d.ctx.engine.Kv,d.ctx.cfg,cb,msg,resp)
+	// log.Info("propose")
+	return
 	panic("not implemented yet")
 	// YOUR CODE HERE (lab1).
 	// Hint1: do `preProposeRaftCommand` check for the command, if the check fails, need to execute the

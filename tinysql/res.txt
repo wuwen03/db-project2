@@ -1,0 +1,2 @@
+go test -timeout 600s ./executor -check.f ^testSuiteLab4C$
+ok  	github.com/pingcap/tidb/executor	0.223s

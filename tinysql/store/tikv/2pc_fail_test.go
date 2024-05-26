@@ -15,6 +15,7 @@ package tikv
 
 import (
 	"context"
+	"log"
 
 	. "github.com/pingcap/check"
 	"github.com/pingcap/errors"
@@ -73,6 +74,7 @@ func (s *testCommitterSuite) TestFailCommitPrimaryRPCErrorThenRegionError(c *C) 
 	c.Assert(err, IsNil)
 	err = t1.Commit(context.Background())
 	c.Assert(err, NotNil)
+	log.Print(err.Error()+" abc" + terror.ErrResultUndetermined.Error())
 	c.Assert(terror.ErrorEqual(err, terror.ErrResultUndetermined), IsTrue, Commentf("%s", errors.ErrorStack(err)))
 }
 
